@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "597426519405",
+    "project_id": "habittracker-f8de2",
+    "storage_bucket": "habittracker-f8de2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:597426519405:android:b827475bc17405028eee64",
+        "android_client_info": {
+          "package_name": "com.example.habbit_tracker_gamify"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCgznkWJmG5hLCJX_JW3SsGJPvI3YA_MO8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
