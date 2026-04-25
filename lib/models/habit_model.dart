@@ -37,4 +37,35 @@ class HabitModel {
       createdAt: (d['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
+
+  Map<String, dynamic> toMap() => {
+    'userId': userId,
+    'name': name,
+    'category': category,
+    'frequency': frequency,
+    'streakCurrent': streakCurrent,
+    'streakLongest': streakLongest,
+    'isActive': isActive,
+    'createdAt': Timestamp.fromDate(createdAt),
+  };
+
+  // Helper: apakah habit sudah done hari ini
+  // (diisi dari habitLogs, bukan dari dokumen habit itu sendiri)
+  HabitModel copyWith({
+    int? streakCurrent,
+    int? streakLongest,
+    bool? isActive,
+  }) {
+    return HabitModel(
+      id: id,
+      userId: userId,
+      name: name,
+      category: category,
+      frequency: frequency,
+      streakCurrent: streakCurrent ?? this.streakCurrent,
+      streakLongest: streakLongest ?? this.streakLongest,
+      isActive: isActive ?? this.isActive,
+      createdAt: createdAt,
+    );
+  }
 }
