@@ -48,6 +48,16 @@ dependencies:
   uuid: ^4.5.0
   intl: ^0.20.2
 
+  # Grafik statistik
+  fl_chart: ^0.69.0
+
+  # Notifikasi lokal
+  flutter_local_notifications: ^17.2.3
+  timezone: ^0.9.4
+
+  # Animasi
+  lottie: ^3.1.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

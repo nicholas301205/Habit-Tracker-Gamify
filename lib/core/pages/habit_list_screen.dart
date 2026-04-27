@@ -13,7 +13,7 @@ class HabitListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Semua Habit'),
+        title: const Text('All Habits'),
         centerTitle: true,
       ),
       floatingActionButton: FloatingActionButton(
@@ -34,11 +34,11 @@ class HabitListScreen extends ConsumerWidget {
                 children: [
                   Icon(Icons.add_task, size: 64, color: Colors.grey),
                   SizedBox(height: 12),
-                  Text('Belum ada habit',
+                  Text('No habits yet',
                     style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                   SizedBox(height: 6),
-                  Text('Tap + untuk tambah habit pertama',
+                  Text('Tap + to add your first habit',
                     style: TextStyle(fontSize: 13, color: Colors.grey),
                   ),
                 ],
@@ -92,7 +92,7 @@ class _HabitCard extends ConsumerWidget {
             ),
             const SizedBox(width: 8),
             Icon(Icons.local_fire_department, size: 14, color: Colors.orange[700]),
-            Text(' ${habit.streakCurrent} hari',
+            Text(' ${habit.streakCurrent} days streak',
               style: const TextStyle(fontSize: 12),
             ),
           ],
@@ -102,7 +102,7 @@ class _HabitCard extends ConsumerWidget {
             const PopupMenuItem(value: 'edit', child: Text('Edit')),
             const PopupMenuItem(
               value: 'delete',
-              child: Text('Hapus', style: TextStyle(color: Colors.red)),
+              child: Text('Delete', style: TextStyle(color: Colors.red)),
             ),
           ],
           onSelected: (val) {
@@ -126,19 +126,19 @@ class _HabitCard extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Hapus Habit?'),
-        content: Text('Habit "${habit.name}" akan dihapus.'),
+        title: const Text('Delete Habit?'),
+        content: Text('Habit "${habit.name}" will be deleted.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
               ref.read(habitNotifierProvider.notifier).deleteHabit(habit.id);
               Navigator.pop(context);
             },
-            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),

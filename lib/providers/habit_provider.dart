@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:habbit_tracker_gamify/core/utils/xp_utils.dart';
 import '../models/habit_model.dart';
 import '../services/firestore_services.dart';
 import 'auth_provider.dart';
@@ -18,25 +20,78 @@ final completedTodayProvider = StreamProvider<List<String>>((ref) {
   return ref.watch(firestoreServiceProvider).watchCompletedToday(uid);
 });
 
+class HabitCompleteResult {
+  final int xpEarned;
+  final int newStreak;
+  final int newLevel;
+  final bool didLevelUp;
+
+  HabitCompleteResult({
+    required this.xpEarned,
+    required this.newStreak,
+    required this.newLevel,
+    required this.didLevelUp,
+  });
+}
+
 // Notifier untuk aksi CRUD
-class HabitNotifier extends StateNotifier<AsyncValue<void>> {
+class HabitNotifier extends StateNotifier<HabitState> {
   final FirestoreService _service;
   final String userId;
 
-  HabitNotifier(this._service, this.userId) : super(const AsyncData(null));
+  HabitNotifier(this._service, this.userId)
+    : super(HabitState.initial());
+
+  Future<void> completeHabit(String habitId, int currentUserLevel) async {
+  state = state.copyWith(isLoading: true, levelUpTo: null);
+  try {
+    // Panggil method lama yang sudah pasti ada
+    await _service.completeHabit(
+      habitId: habitId,
+      userId: userId,
+    );
+
+    // Cek level up langsung dari Firestore
+    final userSnap = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .get();
+
+    final newXp   = userSnap.data()?['xp'] as int? ?? 0;
+    final newLevel = XpUtils.levelFromXp(newXp);
+
+    if (newLevel > currentUserLevel) {
+      state = state.copyWith(isLoading: false, levelUpTo: newLevel);
+    } else {
+      state = state.copyWith(isLoading: false);
+    }
+  } catch (e) {
+    state = state.copyWith(isLoading: false, error: e.toString());
+  }
+}
 
   Future<void> addHabit({
     required String name,
     required String category,
     required String frequency,
   }) async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _service.createHabit(
+  state = state.copyWith(isLoading: true, error: null);
+
+  try {
+    await _service.createHabit(
       userId: userId,
       name: name,
       category: category,
       frequency: frequency,
-    ));
+    );
+
+    state = state.copyWith(isLoading: false);
+  } catch (e) {
+    state = state.copyWith(
+      isLoading: false,
+      error: e.toString(),
+    );
+  }
   }
 
   Future<void> editHabit({
@@ -45,32 +100,71 @@ class HabitNotifier extends StateNotifier<AsyncValue<void>> {
     required String category,
     required String frequency,
   }) async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _service.updateHabit(
+  state = state.copyWith(isLoading: true, error: null);
+
+  try {
+    await _service.updateHabit(
       habitId: habitId,
       name: name,
       category: category,
       frequency: frequency,
-    ));
+    );
+
+    state = state.copyWith(isLoading: false);
+  } catch (e) {
+    state = state.copyWith(
+      isLoading: false,
+      error: e.toString(),
+    );
+  }
   }
 
   Future<void> deleteHabit(String habitId) async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(
-      () => _service.archiveHabit(habitId),
+    state = state.copyWith(isLoading: true, error: null);
+     try {
+    await _service.archiveHabit(habitId);
+
+    state = state.copyWith(isLoading: false);
+  } catch (e) {
+    state = state.copyWith(
+      isLoading: false,
+      error: e.toString(),
     );
   }
+  }
 
-  Future<void> completeHabit(String habitId) async {
-    state = await AsyncValue.guard(() => _service.completeHabit(
-      habitId: habitId,
-      userId: userId,
-    ));
+  void clearLevelUp() {}
+}
+
+class HabitState {
+  final bool isLoading;
+  final int? levelUpTo;  // null = tidak ada level up
+  final String? error;
+
+  const HabitState({
+    required this.isLoading,
+    this.levelUpTo,
+    this.error,
+  });
+
+  factory HabitState.initial() => const HabitState(isLoading: false);
+
+  HabitState copyWith({
+    bool? isLoading,
+    int? levelUpTo,
+    String? error,
+  }) {
+    return HabitState(
+      isLoading: isLoading ?? this.isLoading,
+      levelUpTo: levelUpTo,
+      error: error ?? this.error,
+    );
   }
 }
 
 final habitNotifierProvider =
-    StateNotifierProvider<HabitNotifier, AsyncValue<void>>((ref) {
+    StateNotifierProvider<HabitNotifier, HabitState>((ref) {
   final uid = ref.watch(authStateProvider).asData?.value?.uid ?? '';
   return HabitNotifier(ref.watch(firestoreServiceProvider), uid);
 });
+

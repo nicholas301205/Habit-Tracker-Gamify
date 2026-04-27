@@ -36,17 +36,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.today_outlined),
             activeIcon: Icon(Icons.today),
-            label: 'Hari Ini',
+            label: 'Today',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.list_outlined),
             activeIcon: Icon(Icons.list),
-            label: 'Habit',
+            label: 'Habits',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.bar_chart_outlined),
             activeIcon: Icon(Icons.bar_chart),
-            label: 'Statistik',
+            label: 'Statistics',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.emoji_events_outlined),
@@ -56,7 +56,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
             activeIcon: Icon(Icons.person),
-            label: 'Profil',
+            label: 'Profile',
           ),
         ],
       ),

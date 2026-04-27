@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:habbit_tracker_gamify/core/utils/xp_utils.dart';
+import 'package:habbit_tracker_gamify/features/home/level_up_dialog.dart';
+import 'package:habbit_tracker_gamify/features/home/quest_card_widget.dart';
 import '../../models/habit_model.dart';
 import '../../providers/habit_provider.dart';
 import '../../providers/user_provider.dart';
@@ -34,11 +38,11 @@ class HomeDashboard extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Halo, ${user?.username ?? ''}! 👋',
+                                  'Hello, ${user?.username ?? ''}!',
                                   style: Theme.of(context).textTheme.titleLarge
                                       ?.copyWith(fontWeight: FontWeight.bold),
                                 ),
-                                const Text('Ayo selesaikan habit hari ini',
+                                const Text('Go complete your habits and level up!',
                                   style: TextStyle(color: Colors.grey, fontSize: 13),
                                 ),
                               ],
@@ -73,7 +77,7 @@ class HomeDashboard extends ConsumerWidget {
                             Text('${user.xp} XP',
                               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
                             ),
-                            Text('${user.xpToNextLevel} XP lagi ke Level ${user.level + 1}',
+                            Text('${user.xpToNextLevel} XP to level ${user.level + 1}',
                               style: const TextStyle(fontSize: 11, color: Colors.grey),
                             ),
                           ],
@@ -124,13 +128,13 @@ class HomeDashboard extends ConsumerWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Progress Hari Ini',
+                                  Text("Today's Progress",
                                     style: TextStyle(
                                       fontSize: 12, color: Colors.grey[700],
                                     ),
                                   ),
                                   const SizedBox(height: 4),
-                                  Text('$done / $total habit selesai',
+                                  Text('$done / $total habits done',
                                     style: const TextStyle(
                                       fontSize: 16, fontWeight: FontWeight.bold,
                                     ),
@@ -167,13 +171,20 @@ class HomeDashboard extends ConsumerWidget {
               ),
             ),
 
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(0, 12, 0, 0),
+                child: QuestCardWidget(),
+              ),
+            ),
+
             // ── LIST HABIT HARI INI ───────────────────────────
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                padding: const EdgeInsets.fromLTRB(20, 15, 20, 8),
                 child: Row(
                   children: [
-                    const Text('Habit Hari Ini',
+                    const Text('Habits for Today',
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(width: 8),
@@ -233,10 +244,82 @@ class HomeDashboard extends ConsumerWidget {
 
   String _todayLabel() {
     final now = DateTime.now();
-    const days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
-    const months = ['Jan','Feb','Mar','Apr','Mei','Jun',
-                    'Jul','Agu','Sep','Okt','Nov','Des'];
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const months = ['Jan','Feb','Mar','Apr','May','Jun',
+                    'Jul','Aug','Sep','Oct','Nov','Dec'];
     return '${days[now.weekday - 1]}, ${now.day} ${months[now.month - 1]}';
+  }
+}
+
+// Tambahkan OverlayEntry saat habit di-centang
+
+class _XpFloatWidget extends StatefulWidget {
+  final String text;
+  final Offset position;
+  final VoidCallback onDone;
+  const _XpFloatWidget({
+    required this.text,
+    required this.position,
+    required this.onDone,
+  });
+
+  @override
+  State<_XpFloatWidget> createState() => _XpFloatWidgetState();
+}
+
+class _XpFloatWidgetState extends State<_XpFloatWidget>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _opacity;
+  late Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    _opacity = Tween(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(parent: _ctrl, curve: const Interval(0.5, 1.0)),
+    );
+    _slide = Tween(
+      begin: const Offset(0, 0),
+      end: const Offset(0, -0.3),
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOut));
+
+    _ctrl.forward().then((_) => widget.onDone());
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      left: widget.position.dx + 20,
+      top: widget.position.dy,
+      child: SlideTransition(
+        position: _slide,
+        child: FadeTransition(
+          opacity: _opacity,
+          child: Material(
+            color: Colors.transparent,
+            child: Text(
+              widget.text,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.amber[700],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -248,87 +331,131 @@ class _HabitCheckCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen<HabitState>(habitNotifierProvider, (prev, next) {
+      if (next.levelUpTo != null && next.levelUpTo != prev?.levelUpTo) {
+        LevelUpDialog.show(
+          context,
+          newLevel: next.levelUpTo!,
+          levelTitle: XpUtils.levelTitle(next.levelUpTo!),
+        ).then((_) {
+          ref.read(habitNotifierProvider.notifier).clearLevelUp();
+        });
+      }
+    });
+
+    final categoryColors = {
+      'Health': Colors.green,
+      'Study': Colors.blue,
+      'Productivity': Colors.orange,
+      'Other': Colors.purple,
+    };
+    final color = categoryColors[habit.category] ?? Colors.grey;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        decoration: BoxDecoration(
-          color: isDone
-              ? Colors.green.withOpacity(0.08)
-              : Theme.of(context).cardColor,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isDone ? Colors.green : Colors.grey.shade200,
-          ),
-        ),
-        child: ListTile(
-          leading: GestureDetector(
-            onTap: isDone
-                ? null
-                : () => ref
-                    .read(habitNotifierProvider.notifier)
-                    .completeHabit(habit.id),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 28, height: 28,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isDone
-                    ? Colors.green
-                    : Colors.transparent,
-                border: Border.all(
-                  color: isDone ? Colors.green : Colors.grey,
-                  width: 2,
-                ),
+          onTap: isDone
+          ? null
+          : () async {
+              // Haptic feedback saat centang
+              HapticFeedback.mediumImpact();
+
+              final user = ref.read(currentUserProvider).asData?.value;
+              ref.read(habitNotifierProvider.notifier)
+                  .completeHabit(habit.id, user?.currentLevel ?? 1);
+            },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: isDone
+                  ? Colors.green.withOpacity(0.08)
+                  : Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isDone ? Colors.green : Colors.grey.shade200,
               ),
-              child: isDone
-                  ? const Icon(Icons.check, color: Colors.white, size: 16)
-                  : null,
+            ),
+            child: Row(
+              children: [
+                // ── Circle checkbox ──────────────────────────
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isDone ? Colors.green : Colors.transparent,
+                    border: Border.all(
+                      color: isDone ? Colors.green : Colors.grey,
+                      width: 2,
+                    ),
+                  ),
+                  child: isDone
+                      ? const Icon(Icons.check, color: Colors.white, size: 16)
+                      : null,
+                ),
+                const SizedBox(width: 12),
+
+                // ── Nama & info habit ────────────────────────
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        habit.name,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                          decoration:
+                              isDone ? TextDecoration.lineThrough : null,
+                          color: isDone ? Colors.grey : null,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.local_fire_department,
+                              size: 13, color: Colors.orange[700]),
+                          Text(' ${habit.streakCurrent} days streak',
+                              style: const TextStyle(fontSize: 12)),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: color.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              habit.category,
+                              style: TextStyle(fontSize: 10, color: color),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                // ── Trailing ─────────────────────────────────
+                isDone
+                    ? const Icon(Icons.check_circle,
+                        color: Colors.green, size: 24)
+                    : Text(
+                        '+10 XP',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.amber[700],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+              ],
             ),
           ),
-          title: Text(
-            habit.name,
-            style: TextStyle(
-              fontWeight: FontWeight.w500,
-              decoration: isDone ? TextDecoration.lineThrough : null,
-              color: isDone ? Colors.grey : null,
-            ),
-          ),
-          subtitle: Row(
-            children: [
-              Icon(Icons.local_fire_department,
-                size: 13, color: Colors.orange[700]),
-              Text(' ${habit.streakCurrent} hari',
-                style: const TextStyle(fontSize: 12),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(habit.category,
-                  style: const TextStyle(fontSize: 10),
-                ),
-              ),
-            ],
-          ),
-          trailing: isDone
-              ? const Chip(
-                  label: Text('Selesai ✓',
-                    style: TextStyle(fontSize: 11, color: Colors.green),
-                  ),
-                  padding: EdgeInsets.zero,
-                  visualDensity: VisualDensity.compact,
-                )
-              : Text('+10 XP',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.amber[700],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
         ),
       ),
     );

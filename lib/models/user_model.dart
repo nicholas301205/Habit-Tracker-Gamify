@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:habbit_tracker_gamify/core/utils/xp_utils.dart';
 
 class UserModel {
   final String uid;
@@ -20,8 +21,10 @@ class UserModel {
   });
 
   // XP per level = 100. Level naik tiap 100 XP
-  int get xpToNextLevel => 100 - (xp % 100);
-  double get xpProgress => (xp % 100) / 100;
+  int get xpToNextLevel => XpUtils.xpToNextLevel(xp);
+  double get xpProgress => XpUtils.xpProgress(xp);
+  int get currentLevel => XpUtils.levelFromXp(xp);
+  String get levelTitle => XpUtils.levelTitle(currentLevel);
 
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
     final d = doc.data() as Map<String, dynamic>;
