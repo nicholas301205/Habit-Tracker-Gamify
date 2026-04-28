@@ -24,7 +24,7 @@ class StatsService {
   Future<WeeklyStats> getWeeklyStats(String userId) async {
     final now = DateTime.now();
 
-    // Ambil 7 hari terakhir (hari ini - 6 hari)
+    // Ambil 7 hari terakhir
     final days = List.generate(7, (i) {
       return now.subtract(Duration(days: 6 - i));
     });
@@ -46,7 +46,7 @@ class StatsService {
         .where('dateString', whereIn: dateStrings)
         .get();
 
-    // Hitung total habit aktif (sebagai denominator)
+    // Hitung total habit aktif
     final habitsSnap = await _db.collection('habits')
         .where('userId', isEqualTo: userId)
         .where('isActive', isEqualTo: true)

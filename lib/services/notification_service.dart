@@ -6,7 +6,6 @@ class NotificationService {
   static final _plugin = FlutterLocalNotificationsPlugin();
   static bool _initialized = false;
 
-  // ── INIT ─────────────────────────────────────────────
   static Future<void> init() async {
     if (_initialized) return;
 
@@ -29,7 +28,6 @@ class NotificationService {
       ),
     );
 
-    // Request permission (Android 13+)
     await _plugin
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
@@ -38,37 +36,35 @@ class NotificationService {
     _initialized = true;
   }
 
-  // ── SCHEDULE DAILY REMINDER ───────────────────────────
   static Future<void> scheduleDailyReminder({
-    required int id,
-    required String habitName,
-    required int hour,
-    required int minute,
-  }) async {
-    await _plugin.zonedSchedule(
-      id,
-      'Waktunya Habit! ⏰',
-      'Jangan lupa: $habitName hari ini',
-      _nextInstanceOf(hour, minute),
-      NotificationDetails(
-        android: AndroidNotificationDetails(
-          'habit_reminder',
-          'Habit Reminder',
-          channelDescription: 'Pengingat habit harian',
-          importance: Importance.high,
-          priority: Priority.high,
-          icon: '@mipmap/ic_launcher',
-        ),
-        iOS: const DarwinNotificationDetails(),
+  required int id,
+  required String habitName,
+  required int hour,
+  required int minute,
+}) async {
+  await _plugin.zonedSchedule(
+    id,
+    'Waktunya Habit! ⏰',
+    'Jangan lupa: $habitName hari ini',
+    _nextInstanceOf(hour, minute),
+    NotificationDetails(
+      android: AndroidNotificationDetails(
+        'habit_reminder',
+        'Habit Reminder',
+        channelDescription: 'Pengingat habit harian',
+        importance: Importance.high,
+        priority: Priority.high,
+        icon: '@mipmap/ic_launcher',
       ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      matchDateTimeComponents: DateTimeComponents.time,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime, // repeat harian
-    );
-  }
+      iOS: const DarwinNotificationDetails(),
+    ),
+    androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle, // ✅ FIX
+    matchDateTimeComponents: DateTimeComponents.time,
+    uiLocalNotificationDateInterpretation:
+        UILocalNotificationDateInterpretation.absoluteTime,
+  );
+}
 
-  // ── CANCEL NOTIFIKASI ─────────────────────────────────
   static Future<void> cancelReminder(int id) async {
     await _plugin.cancel(id);
   }
@@ -77,7 +73,6 @@ class NotificationService {
     await _plugin.cancelAll();
   }
 
-  // ── HELPER ────────────────────────────────────────────
   static tz.TZDateTime _nextInstanceOf(int hour, int minute) {
     final now = tz.TZDateTime.now(tz.local);
     var scheduled = tz.TZDateTime(
@@ -91,7 +86,6 @@ class NotificationService {
     return scheduled;
   }
 
-  // ── TEST NOTIFIKASI (untuk debug) ─────────────────────
   static Future<void> showTestNotification() async {
     await _plugin.show(
       999,

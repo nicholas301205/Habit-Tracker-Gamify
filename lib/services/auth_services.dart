@@ -11,7 +11,7 @@ class AuthService {
   // User yang sedang login
   User? get currentUser => _auth.currentUser;
 
-  // ── REGISTER ──────────────────────────────────────────
+  // REGISTER
   Future<UserCredential> register({
     required String email,
     required String password,
@@ -40,7 +40,7 @@ class AuthService {
     return credential;
   }
 
-  // ── LOGIN ─────────────────────────────────────────────
+  // LOGIN
   Future<UserCredential> login({
     required String email,
     required String password,
@@ -51,12 +51,12 @@ class AuthService {
     );
   }
 
-  // ── LOGOUT ────────────────────────────────────────────
+  // LOGOUT
   Future<void> logout() async {
     await _auth.signOut();
   }
 
-  // ── ERROR HANDLER ─────────────────────────────────────
+  // ERROR HANDLER
   String getErrorMessage(String code) {
     switch (code) {
       case 'email-already-in-use':

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:habbit_tracker_gamify/features/home/home_dashboard.dart';
-import '../habit/habit_list_screen.dart';
-import '../stats/stats_screen.dart';
-import '../achievement/achievement_screen.dart';
-import '../profile/profile_screen.dart';
+import 'package:habbit_tracker_gamify/core/components/home_dashboard.dart';
+import 'habit_list_screen.dart';
+import 'stats_screen.dart';
+import 'achievement_screen.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -17,7 +17,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _selectedIndex = 0;
 
     final _screens = const [
-    HomeDashboard(),      // ← ganti _TodayTab() dengan ini
+    HomeDashboard(),     
     HabitListScreen(),
     StatsScreen(),
     AchievementScreen(),

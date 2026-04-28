@@ -21,7 +21,7 @@ class StatsScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Summary cards ─────────────────────────
+              // Summary cards
               Row(
                 children: [
                   _StatCard(
@@ -58,7 +58,7 @@ class StatsScreen extends ConsumerWidget {
                 ],
               ),
 
-              // ── Chart ─────────────────────────────────
+              // Chart 
               const SizedBox(height: 24),
               const Text('Completion Rate 7 Days Ago',
                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),

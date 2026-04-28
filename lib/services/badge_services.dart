@@ -12,9 +12,9 @@ class BadgeService {
     required int totalXp,
     required int habitCount,
     required bool questCompleted,
-    required bool isFirstHabit, // apakah ini habit pertama yang diselesaikan
+    required bool isFirstHabit, 
   }) async {
-    print('=== BADGE CHECK START ===');
+    print(' BADGE CHECK START ');
     // Ambil badges yang sudah dimiliki user
     final userDoc = await _db.collection('users').doc(userId).get();
     final ownedBadges = List<String>.from(
@@ -24,7 +24,7 @@ class BadgeService {
     final newlyUnlocked = <String>[];
     final toAdd = <String>[];
 
-    // ─ Cek tiap kondisi badge ────────────────────────────
+    // Cek tiap kondisi badge 
     void tryUnlock(String badgeId, bool condition) {
     print('CHECK BADGE: $badgeId | condition: $condition');
 
@@ -54,7 +54,7 @@ class BadgeService {
   }
 
     print('RETURN BADGES: $newlyUnlocked');
-    return newlyUnlocked; // list badge ID yang baru di-unlock
+    return newlyUnlocked; 
   }
 
   // Ambil list badge dengan status unlocked dari user
