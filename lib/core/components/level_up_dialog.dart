@@ -71,6 +71,7 @@ class _LevelUpDialogState extends State<LevelUpDialog>
                   Colors.orange.shade700,
                 ],
               ),
+
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
@@ -80,6 +81,7 @@ class _LevelUpDialogState extends State<LevelUpDialog>
                 ),
               ],
             ),
+
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -94,6 +96,7 @@ class _LevelUpDialogState extends State<LevelUpDialog>
                     letterSpacing: 2,
                   ),
                 ),
+
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -101,6 +104,7 @@ class _LevelUpDialogState extends State<LevelUpDialog>
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(20),
                   ),
+
                   child: Text(
                     'Level ${widget.newLevel}',
                     style: const TextStyle(
@@ -110,6 +114,7 @@ class _LevelUpDialogState extends State<LevelUpDialog>
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 8),
                 Text(
                   widget.levelTitle,
@@ -119,6 +124,7 @@ class _LevelUpDialogState extends State<LevelUpDialog>
                     fontStyle: FontStyle.italic,
                   ),
                 ),
+
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
@@ -132,9 +138,11 @@ class _LevelUpDialogState extends State<LevelUpDialog>
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
+
                     child: const Text('Keep Going!',
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                     ),
+                    
                   ),
                 ),
               ],

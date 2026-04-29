@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/auth_provider.dart';
-import '../../features/splash/splash_screen.dart';
-import '../../features/auth/login_screen.dart';
-import '../../features/auth/register_screen.dart';
-import '../../features/home/home_screen.dart';
+import '../pages/splash_screen.dart';
+import '../pages/login_screen.dart';
+import '../pages/register_screen.dart';
+import '../pages/home_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);

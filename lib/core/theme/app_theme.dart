@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // ── Warna utama ──────────────────────────────────────
+  //  Warna utama 
   static const _primaryColor = Color(0xFF6C63FF); // ungu
   static const _secondaryColor = Color(0xFF43C6AC); // teal
 
-  // ── LIGHT THEME ──────────────────────────────────────
+  //  LIGHT THEME 
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
@@ -60,7 +60,7 @@ class AppTheme {
     );
   }
 
-  // ── DARK THEME ───────────────────────────────────────
+  //  DARK THEME 
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,

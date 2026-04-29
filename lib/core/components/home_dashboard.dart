@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habbit_tracker_gamify/core/utils/xp_utils.dart';
-import 'package:habbit_tracker_gamify/features/home/level_up_dialog.dart';
-import 'package:habbit_tracker_gamify/features/home/quest_card_widget.dart';
+import 'package:habbit_tracker_gamify/core/components/level_up_dialog.dart';
+import 'package:habbit_tracker_gamify/core/components/quest_card_widget.dart';
 import '../../models/habit_model.dart';
 import '../../providers/habit_provider.dart';
 import '../../providers/user_provider.dart';
@@ -24,81 +24,78 @@ class HomeDashboard extends ConsumerWidget {
             // ── HEADER ────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                padding: const EdgeInsets.all(20),
                 child: userAsync.when(
-                  loading: () => const SizedBox(height: 80),
+                  loading: () => const SizedBox(height: 120),
                   error: (_, __) => const SizedBox(),
-                  data: (user) => Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                  data: (user) {
+                    if (user == null) return const SizedBox();
+
+                    final color = Theme.of(context).colorScheme.primary;
+
+                    return Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        gradient: LinearGradient(
+                          colors: [
+                            color.withOpacity(0.9),
+                            color.withOpacity(0.6),
+                          ],
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Hello, ${user?.username ?? ''}!',
-                                  style: Theme.of(context).textTheme.titleLarge
-                                      ?.copyWith(fontWeight: FontWeight.bold),
-                                ),
-                                const Text('Go complete your habits and level up!',
-                                  style: TextStyle(color: Colors.grey, fontSize: 13),
-                                ),
-                              ],
+                          Text(
+                            'Hello, ${user.username}',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
                           ),
-                          // Level badge
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primaryContainer,
-                              borderRadius: BorderRadius.circular(20),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'Keep going. Level up your life 🚀',
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // XP BAR
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: LinearProgressIndicator(
+                              value: user.xpProgress,
+                              minHeight: 10,
+                              backgroundColor: Colors.white24,
+                              valueColor:
+                                  const AlwaysStoppedAnimation(Colors.white),
                             ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.star, size: 14),
-                                const SizedBox(width: 4),
-                                Text('Lv. ${user?.level ?? 1}',
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
+                          ),
+                          const SizedBox(height: 8),
+
+                          Row(
+                            mainAxisAlignment:
+                                MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('${user.xp} XP',
+                                  style:
+                                      const TextStyle(color: Colors.white)),
+                              Text('Lv. ${user.level}',
+                                  style:
+                                      const TextStyle(color: Colors.white)),
+                            ],
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
-                      // XP Progress bar
-                      if (user != null) ...[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('${user.xp} XP',
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-                            ),
-                            Text('${user.xpToNextLevel} XP to level ${user.level + 1}',
-                              style: const TextStyle(fontSize: 11, color: Colors.grey),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: user.xpProgress,
-                            minHeight: 8,
-                            backgroundColor: Colors.grey.shade200,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
+                    );
+                  },
                 ),
               ),
             ),
 
-            // ── PROGRESS SUMMARY ──────────────────────────────
+            // PROGRESS SUMMARY
             SliverToBoxAdapter(
               child: completedAsync.when(
                 loading: () => const SizedBox(),
@@ -110,61 +107,80 @@ class HomeDashboard extends ConsumerWidget {
                     final total = habits.length;
                     final done = completed.length;
                     return Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
                       child: Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(18),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primaryContainer
-                              .withOpacity(0.4),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Theme.of(context).colorScheme.primary
-                                .withOpacity(0.2),
-                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          color: Theme.of(context).cardColor,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                            ),
+                          ],
                         ),
                         child: Row(
                           children: [
                             Expanded(
+                              flex: 3,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text("Today's Progress",
-                                    style: TextStyle(
-                                      fontSize: 12, color: Colors.grey[700],
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey[600],
+                                      )),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    '$done / $total habits',
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text('$done / $total habits done',
-                                    style: const TextStyle(
-                                      fontSize: 16, fontWeight: FontWeight.bold,
-                                    ),
+                                  const SizedBox(height: 6),
+
+                                  // 🔥 optional improvement
+                                  Text(
+                                    done == total
+                                        ? "All habits completed 🎉"
+                                        : "Keep going!",
+                                    style: const TextStyle(fontSize: 12),
                                   ),
                                 ],
                               ),
                             ),
-                            // Circle progress
+
+                            const SizedBox(width: 16),
+
+                            // RIGHT SIDE (bigger & centered)
                             SizedBox(
-                              width: 48, height: 48,
+                              width: 72,
+                              height: 72,
                               child: Stack(
                                 alignment: Alignment.center,
                                 children: [
                                   CircularProgressIndicator(
                                     value: total == 0 ? 0 : done / total,
-                                    strokeWidth: 5,
-                                    backgroundColor: Colors.grey.shade200,
+                                    strokeWidth: 6,
                                   ),
                                   Text(
-                                    total == 0 ? '-' : '${(done/total*100).toInt()}%',
+                                    total == 0
+                                        ? '-'
+                                        : '${(done / total * 100).toInt()}%',
                                     style: const TextStyle(
-                                      fontSize: 11, fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
                           ],
-                        ),
-                      ),
+                        )
+                      )
                     );
                   },
                 ),
@@ -183,17 +199,21 @@ class HomeDashboard extends ConsumerWidget {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 15, 20, 8),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Habits for Today',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                    const Text(
+                      'Today’s Missions',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    const SizedBox(width: 8),
                     Text(
                       _todayLabel(),
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                      style: const TextStyle(color: Colors.grey),
                     ),
                   ],
-                ),
+                )
               ),
             ),
 
@@ -371,29 +391,30 @@ class _HabitCheckCard extends ConsumerWidget {
             duration: const Duration(milliseconds: 250),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
               color: isDone
-                  ? Colors.green.withOpacity(0.08)
+                  ? Colors.green.withOpacity(0.1)
                   : Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isDone ? Colors.green : Colors.grey.shade200,
-              ),
+              boxShadow: [
+                if (!isDone)
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 8,
+                  ),
+              ],
             ),
             child: Row(
               children: [
                 // ── Circle checkbox ──────────────────────────
-                AnimatedContainer(
+                TweenAnimationBuilder(
+                  tween: Tween(begin: 1.0, end: isDone ? 0.98 : 1.0),
                   duration: const Duration(milliseconds: 200),
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isDone ? Colors.green : Colors.transparent,
-                    border: Border.all(
-                      color: isDone ? Colors.green : Colors.grey,
-                      width: 2,
-                    ),
-                  ),
+                  builder: (context, scale, child) {
+                    return Transform.scale(
+                      scale: scale,
+                      child: child,
+                    );
+                  },
                   child: isDone
                       ? const Icon(Icons.check, color: Colors.white, size: 16)
                       : null,
@@ -446,13 +467,12 @@ class _HabitCheckCard extends ConsumerWidget {
                     ? const Icon(Icons.check_circle,
                         color: Colors.green, size: 24)
                     : Text(
-                        '+10 XP',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.amber[700],
-                          fontWeight: FontWeight.w500,
-                        ),
+                      '+10 XP',
+                      style: TextStyle(
+                        color: Colors.amber[700],
+                        fontWeight: FontWeight.bold,
                       ),
+                    )
               ],
             ),
           ),
