@@ -11,6 +11,3 @@ android/app/build/
 # iOS
 ios/Pods/
 ios/.symlinks/
-
-# ENV
-.env
