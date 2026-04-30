@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habbit_tracker_gamify/core/utils/xp_utils.dart';
 import 'package:habbit_tracker_gamify/core/components/level_up_dialog.dart';
 import 'package:habbit_tracker_gamify/core/components/quest_card_widget.dart';
+import 'package:habbit_tracker_gamify/core/components/badge_achievement_dialog.dart';
 import '../../models/habit_model.dart';
+import '../../models/badge_model.dart';
 import '../../providers/habit_provider.dart';
 import '../../providers/user_provider.dart';
 
@@ -361,6 +363,11 @@ class _HabitCheckCard extends ConsumerWidget {
           ref.read(habitNotifierProvider.notifier).clearLevelUp();
         });
       }
+
+      // Show badge unlock dialogs for newly unlocked badges
+      if (next.newlyUnlockedBadges.isNotEmpty) {
+        _showBadgeDialogs(context, next.newlyUnlockedBadges);
+      }
     });
 
     final categoryColors = {
@@ -480,4 +487,62 @@ class _HabitCheckCard extends ConsumerWidget {
       ),
     );
   }
+}
+
+// Helper methods for badge dialogs
+Future<void> _showBadgeDialogs(BuildContext context, List<String> badgeIds) async {
+  for (final badgeId in badgeIds) {
+    final badge = _getBadgeById(badgeId);
+    if (badge != null) {
+      await BadgeUnlockDialog.show(context, badge);
+    }
+  }
+}
+
+BadgeModel? _getBadgeById(String badgeId) {
+  final badges = {
+    'first_step': BadgeModel(
+      id: 'first_step',
+      name: 'First Step',
+      description: 'Completed your first habit!',
+      emoji: '👶',
+      color: Colors.blue,
+    ),
+    'on_fire': BadgeModel(
+      id: 'on_fire',
+      name: 'On Fire',
+      description: 'Maintained a 3-day streak!',
+      emoji: '🔥',
+      color: Colors.orange,
+    ),
+    'week_warrior': BadgeModel(
+      id: 'week_warrior',
+      name: 'Week Warrior',
+      description: 'Completed habits for 7 days straight!',
+      emoji: '⚔️',
+      color: Colors.red,
+    ),
+    'level_up': BadgeModel(
+      id: 'level_up',
+      name: 'Level Up',
+      description: 'Reached level 5!',
+      emoji: '⬆️',
+      color: Colors.purple,
+    ),
+    'quest_master': BadgeModel(
+      id: 'quest_master',
+      name: 'Quest Master',
+      description: 'Completed your daily quest!',
+      emoji: '🏆',
+      color: Colors.amber,
+    ),
+    'collector': BadgeModel(
+      id: 'collector',
+      name: 'Collector',
+      description: 'Created 5 different habits!',
+      emoji: '📚',
+      color: Colors.green,
+    ),
+  };
+  return badges[badgeId];
 }

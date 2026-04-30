@@ -73,3 +73,7 @@ Future<void> claimQuestBonus(String userId) async {
   });
   await batch.commit();
 }
+
+final claimQuestBonusProvider = Provider<Future<void> Function(String)>((ref) {
+  return claimQuestBonus;
+});

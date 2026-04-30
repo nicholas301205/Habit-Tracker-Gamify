@@ -1,6 +1,7 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
+import '../models/habit_model.dart';
 
 class NotificationService {
   static final _plugin = FlutterLocalNotificationsPlugin();
@@ -10,7 +11,7 @@ class NotificationService {
     if (_initialized) return;
 
     tz.initializeTimeZones();
-    tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
+    tz.setLocalLocation(tz.getLocation('Asia/Makassar')); // Sesuaikan dengan zona waktu Anda
 
     const androidSettings = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
@@ -84,6 +85,23 @@ class NotificationService {
       scheduled = scheduled.add(const Duration(days: 1));
     }
     return scheduled;
+  }
+
+  static Future<void> rescheduleAllHabits(List<HabitModel> habits) async {
+    // Cancel all existing notifications first
+    await cancelAll();
+
+    // Schedule notifications for habits with reminder times
+    for (final habit in habits) {
+      if (habit.reminderTime != null && habit.isActive) {
+        await scheduleDailyReminder(
+          id: habit.name.hashCode,
+          habitName: habit.name,
+          hour: habit.reminderTime!.hour,
+          minute: habit.reminderTime!.minute,
+        );
+      }
+    }
   }
 
   static Future<void> showTestNotification() async {

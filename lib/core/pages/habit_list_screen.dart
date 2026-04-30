@@ -135,7 +135,7 @@ class _HabitCard extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () {
-              ref.read(habitNotifierProvider.notifier).deleteHabit(habit.id);
+              ref.read(habitNotifierProvider.notifier).deleteHabit(habit.id, habit.name);
               Navigator.pop(context);
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),

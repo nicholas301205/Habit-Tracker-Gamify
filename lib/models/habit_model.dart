@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
 class HabitModel {
   final String id;
@@ -10,6 +11,7 @@ class HabitModel {
   final int streakLongest;
   final bool isActive;
   final DateTime createdAt;
+  final TimeOfDay? reminderTime;
 
   HabitModel({
     required this.id,
@@ -21,6 +23,7 @@ class HabitModel {
     required this.streakLongest,
     required this.isActive,
     required this.createdAt,
+    this.reminderTime,
   });
 
   factory HabitModel.fromFirestore(DocumentSnapshot doc) {
@@ -35,6 +38,12 @@ class HabitModel {
       streakLongest: d['streakLongest'] ?? 0,
       isActive: d['isActive'] ?? true,
       createdAt: (d['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      reminderTime: d['reminderTime'] != null
+          ? TimeOfDay(
+              hour: d['reminderTime']['hour'] ?? 7,
+              minute: d['reminderTime']['minute'] ?? 0,
+            )
+          : null,
     );
   }
 
@@ -47,6 +56,9 @@ class HabitModel {
     'streakLongest': streakLongest,
     'isActive': isActive,
     'createdAt': Timestamp.fromDate(createdAt),
+    'reminderTime': reminderTime != null
+        ? {'hour': reminderTime!.hour, 'minute': reminderTime!.minute}
+        : null,
   };
 
   // Helper: apakah habit sudah done hari ini
@@ -55,6 +67,7 @@ class HabitModel {
     int? streakCurrent,
     int? streakLongest,
     bool? isActive,
+    TimeOfDay? reminderTime,
   }) {
     return HabitModel(
       id: id,
@@ -66,6 +79,7 @@ class HabitModel {
       streakLongest: streakLongest ?? this.streakLongest,
       isActive: isActive ?? this.isActive,
       createdAt: createdAt,
+      reminderTime: reminderTime ?? this.reminderTime,
     );
   }
 }

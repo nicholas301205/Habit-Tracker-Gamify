@@ -104,7 +104,10 @@ class QuestCardWidget extends ConsumerWidget {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => claimQuestBonus(uid),
+                      onPressed: () async {
+                        final claimFunction = ref.read(claimQuestBonusProvider);
+                        await claimFunction(uid);
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.blue.shade700,

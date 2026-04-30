@@ -34,6 +34,7 @@ class _AddEditHabitScreenState
       _nameCtrl.text = widget.habit!.name;
       _category = widget.habit!.category;
       _frequency = widget.habit!.frequency;
+      _reminderTime = widget.habit!.reminderTime;
     }
   }
 
@@ -47,9 +48,16 @@ class _AddEditHabitScreenState
     if (!_formKey.currentState!.validate()) return;
     final notifier = ref.read(habitNotifierProvider.notifier);
 
+    // Handle notifications
+    final notificationId = _isEdit ? widget.habit!.id.hashCode : _nameCtrl.text.trim().hashCode;
+    if (_isEdit && widget.habit!.reminderTime != null) {
+      // Cancel old notification
+      await NotificationService.cancelReminder(widget.habit!.id.hashCode);
+    }
+
     if (_reminderTime != null) {
       await NotificationService.scheduleDailyReminder(
-        id: _nameCtrl.text.hashCode,
+        id: notificationId,
         habitName: _nameCtrl.text.trim(),
         hour: _reminderTime!.hour,
         minute: _reminderTime!.minute,
@@ -62,12 +70,14 @@ class _AddEditHabitScreenState
         name: _nameCtrl.text.trim(),
         category: _category,
         frequency: _frequency,
+        reminderTime: _reminderTime,
       );
     } else {
       await notifier.addHabit(
         name: _nameCtrl.text.trim(),
         category: _category,
         frequency: _frequency,
+        reminderTime: _reminderTime,
       );
     }
 

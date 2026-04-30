@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:habbit_tracker_gamify/core/utils/xp_utils.dart';
 import '../models/habit_model.dart';
 import '../services/firestore_services.dart';
+import '../services/notification_service.dart';
 import 'auth_provider.dart';
 
 // Stream semua habit user yang aktif
@@ -25,12 +27,14 @@ class HabitCompleteResult {
   final int newStreak;
   final int newLevel;
   final bool didLevelUp;
+  final List<String> newlyUnlockedBadges;
 
   HabitCompleteResult({
     required this.xpEarned,
     required this.newStreak,
     required this.newLevel,
     required this.didLevelUp,
+    required this.newlyUnlockedBadges,
   });
 }
 
@@ -43,10 +47,10 @@ class HabitNotifier extends StateNotifier<HabitState> {
     : super(HabitState.initial());
 
   Future<void> completeHabit(String habitId, int currentUserLevel) async {
-  state = state.copyWith(isLoading: true, levelUpTo: null);
+  state = state.copyWith(isLoading: true, levelUpTo: null, newlyUnlockedBadges: []);
   try {
     // Panggil method lama yang sudah pasti ada
-    await _service.completeHabit(
+    final newlyUnlockedBadges = await _service.completeHabit(
       habitId: habitId,
       userId: userId,
     );
@@ -61,9 +65,16 @@ class HabitNotifier extends StateNotifier<HabitState> {
     final newLevel = XpUtils.levelFromXp(newXp);
 
     if (newLevel > currentUserLevel) {
-      state = state.copyWith(isLoading: false, levelUpTo: newLevel);
+      state = state.copyWith(
+        isLoading: false,
+        levelUpTo: newLevel,
+        newlyUnlockedBadges: newlyUnlockedBadges,
+      );
     } else {
-      state = state.copyWith(isLoading: false);
+      state = state.copyWith(
+        isLoading: false,
+        newlyUnlockedBadges: newlyUnlockedBadges,
+      );
     }
   } catch (e) {
     state = state.copyWith(isLoading: false, error: e.toString());
@@ -74,6 +85,7 @@ class HabitNotifier extends StateNotifier<HabitState> {
     required String name,
     required String category,
     required String frequency,
+    TimeOfDay? reminderTime,
   }) async {
   state = state.copyWith(isLoading: true, error: null);
 
@@ -83,6 +95,7 @@ class HabitNotifier extends StateNotifier<HabitState> {
       name: name,
       category: category,
       frequency: frequency,
+      reminderTime: reminderTime,
     );
 
     state = state.copyWith(isLoading: false);
@@ -99,6 +112,7 @@ class HabitNotifier extends StateNotifier<HabitState> {
     required String name,
     required String category,
     required String frequency,
+    TimeOfDay? reminderTime,
   }) async {
   state = state.copyWith(isLoading: true, error: null);
 
@@ -108,6 +122,7 @@ class HabitNotifier extends StateNotifier<HabitState> {
       name: name,
       category: category,
       frequency: frequency,
+      reminderTime: reminderTime,
     );
 
     state = state.copyWith(isLoading: false);
@@ -119,9 +134,12 @@ class HabitNotifier extends StateNotifier<HabitState> {
   }
   }
 
-  Future<void> deleteHabit(String habitId) async {
+  Future<void> deleteHabit(String habitId, String habitName) async {
     state = state.copyWith(isLoading: true, error: null);
      try {
+    // Cancel any scheduled notifications for this habit
+    await NotificationService.cancelReminder(habitName.hashCode);
+
     await _service.archiveHabit(habitId);
 
     state = state.copyWith(isLoading: false);
@@ -133,18 +151,22 @@ class HabitNotifier extends StateNotifier<HabitState> {
   }
   }
 
-  void clearLevelUp() {}
+  void clearLevelUp() {
+    state = state.copyWith(levelUpTo: null);
+  }
 }
 
 class HabitState {
   final bool isLoading;
   final int? levelUpTo;  // null = tidak ada level up
   final String? error;
+  final List<String> newlyUnlockedBadges;
 
   const HabitState({
     required this.isLoading,
     this.levelUpTo,
     this.error,
+    this.newlyUnlockedBadges = const [],
   });
 
   factory HabitState.initial() => const HabitState(isLoading: false);
@@ -153,11 +175,13 @@ class HabitState {
     bool? isLoading,
     int? levelUpTo,
     String? error,
+    List<String>? newlyUnlockedBadges,
   }) {
     return HabitState(
       isLoading: isLoading ?? this.isLoading,
       levelUpTo: levelUpTo,
       error: error ?? this.error,
+      newlyUnlockedBadges: newlyUnlockedBadges ?? this.newlyUnlockedBadges,
     );
   }
 }
