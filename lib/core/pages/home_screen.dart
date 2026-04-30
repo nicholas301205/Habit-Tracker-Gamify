@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+// COMPONENTS
 import 'package:habbit_tracker_gamify/core/components/home_dashboard.dart';
+
+// PAGES
 import 'habit_list_screen.dart';
 import 'stats_screen.dart';
 import 'achievement_screen.dart';
@@ -16,8 +21,8 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _selectedIndex = 0;
 
-    final _screens = const [
-    HomeDashboard(),     
+  final _screens = const [
+    HomeDashboard(),
     HabitListScreen(),
     StatsScreen(),
     AchievementScreen(),
@@ -27,7 +32,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text("Habit Tracker"),
+        actions: [
+          /// 🔥 BUTTON AI (PENTING)
+          IconButton(
+            icon: const Icon(Icons.smart_toy),
+            tooltip: "AI Assistant",
+            onPressed: () {
+              context.push('/ai');
+            },
+          ),
+        ],
+      ),
+
       body: _screens[_selectedIndex],
+
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (i) => setState(() => _selectedIndex = i),
@@ -60,7 +80,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ],
       ),
+
+      /// 🔥 OPTIONAL: Floating AI Button (lebih keren)
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          context.push('/ai');
+        },
+        child: const Icon(Icons.chat),
+      ),
     );
   }
 }
-
