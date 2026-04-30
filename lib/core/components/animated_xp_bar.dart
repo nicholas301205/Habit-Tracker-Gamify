@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AnimatedXpBar extends StatefulWidget {
-  final double progress;  // 0.0 – 1.0
+  final double progress; 
   final int xp;
   final int level;
   final int xpToNext;

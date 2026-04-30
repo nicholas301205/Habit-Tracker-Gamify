@@ -46,9 +46,9 @@ class BadgeService {
     if (toAdd.isNotEmpty) {
     print('UPDATING BADGES: $toAdd');
 
-    await _db.collection('users').doc(userId).update({
+    await _db.collection('users').doc(userId).set({
       'badges': FieldValue.arrayUnion(toAdd),
-    });
+    }, SetOptions(merge: true));
   } else {
     print('NO BADGE UNLOCKED');
   }

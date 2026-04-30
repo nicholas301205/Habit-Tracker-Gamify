@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habbit_tracker_gamify/core/utils/xp_utils.dart';
 import 'package:habbit_tracker_gamify/models/habit_model.dart';
@@ -40,6 +41,7 @@ class FirestoreService {
     required String name,
     required String category,
     required String frequency,
+    TimeOfDay? reminderTime,
   }) async {
     await FirebaseFirestore.instance.collection('habits').add({
       'userId': userId,
@@ -50,6 +52,9 @@ class FirestoreService {
       'streakLongest': 0,
       'isActive': true,
       'createdAt': FieldValue.serverTimestamp(),
+      'reminderTime': reminderTime != null
+          ? {'hour': reminderTime.hour, 'minute': reminderTime.minute}
+          : null,
     });
   }
 
@@ -79,11 +84,15 @@ class FirestoreService {
     required String name,
     required String category,
     required String frequency,
+    TimeOfDay? reminderTime,
   }) async {
     await _db.collection('habits').doc(habitId).update({
       'name': name,
       'category': category,
       'frequency': frequency,
+      'reminderTime': reminderTime != null
+          ? {'hour': reminderTime.hour, 'minute': reminderTime.minute}
+          : null,
     });
   }
 
@@ -112,18 +121,13 @@ class FirestoreService {
   }
 
   // LOGS
-  Future<void> completeHabit({
+  Future<List<String>> completeHabit({
     required String habitId,
     required String userId,
   }) async {
     final today = DateTime.now();
     final todayStr = _dateStr(today);
     final yesterdayStr = _dateStr(today.subtract(const Duration(days: 1)));
-
-    print(' FUNCTION CALL TRACE: completeHabit  ${DateTime.now().millisecondsSinceEpoch}');
-    print(' completeHabit START ');
-    print('Today: $todayStr | Yesterday: $yesterdayStr');
-    print('HabitId: $habitId | UserId: $userId');
 
   // 1. Cek sudah selesai hari ini?
   await _db.runTransaction((transaction) async {
@@ -134,11 +138,9 @@ class FirestoreService {
       .where('dateString', isEqualTo: todayStr)
       .get();
 
-  print('STEP 1 - Existing logs today: ${existing.docs.length}');
-
   if (existing.docs.isNotEmpty) {
     print(' STOPPED: already completed today ');
-    return;
+    return [];
   }});
 
   // 2. Cek kalau ada log kemarin (untuk streak)
@@ -155,7 +157,7 @@ class FirestoreService {
 
   if (!habitSnap.exists) {
     print(' ERROR: habit document not found for habitId: $habitId ===');
-    return;
+    return [];
   }
 
   final habitData = habitSnap.data() as Map<String, dynamic>;
@@ -188,7 +190,7 @@ class FirestoreService {
 
   // Penting iskal! Cek ulang kalau log sudah ada sebelum buat, untuk mencegah duplikat
   await logRef.get();
-  if ((await logRef.get()).exists) return;
+  if ((await logRef.get()).exists) return [];
 
   batch.set(logRef, {
     'habitId': habitId,
@@ -219,13 +221,8 @@ class FirestoreService {
 
   } catch (e) {
     print(' STEP 5 - batch.commit() FAILED: $e ');
-    return;
+    return [];
   }
-
-  await _db.collection('habitLogs')
-    .where('userId', isEqualTo: userId)
-    .where('dateString', isEqualTo: todayStr)
-    .get();
 
   final logs = await _db.collection('habitLogs')
     .where('userId', isEqualTo: userId)
@@ -292,7 +289,7 @@ print('STEP BADGE - questCompleted: $questCompleted');
   print('questCompleted: $questCompleted');
   print('isFirstHabit: $isFirstHabit');
 
-  await badgeService.checkAndUnlockBadges(
+  final newlyUnlockedBadges = await badgeService.checkAndUnlockBadges(
     userId: userId,
     newStreak: newStreak,
     totalXp: totalXp,
@@ -300,9 +297,9 @@ print('STEP BADGE - questCompleted: $questCompleted');
     questCompleted: questCompleted,
     isFirstHabit: isFirstHabit,
   );
-  final newXp = userSnap.data()!['xp'] as int? ?? 0;
+  final newXp = userSnap.data()?['xp'] as int? ?? 0;
   final newLevel = XpUtils.levelFromXp(newXp);
-  final currentLevel = userSnap.data()!['level'] as int? ?? 1;
+  final currentLevel = userSnap.data()?['level'] as int? ?? 1;
 
   print('STEP 6 - New XP: $newXp | New level: $newLevel | Current level: $currentLevel');
 
@@ -312,8 +309,12 @@ print('STEP BADGE - questCompleted: $questCompleted');
     print('STEP 6 - LEVEL UP to $newLevel!');
     // Return info level up ke caller (pakai state di provider)
   }
+
+  // Return the newly unlocked badges
+  return newlyUnlockedBadges;
 } catch (e) {
     print(' STEP 6 ERROR: $e ');
+    return [];
   }}
 
 // Format date ke string "yyyy-MM-dd"

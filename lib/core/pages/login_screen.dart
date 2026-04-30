@@ -60,12 +60,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 48),
-                Text('Selamat datang!',
+                Text('Welcome Back!',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const Text('Login untuk lanjutkan streak kamu',
+                const Text('Login to continue your Streak!',
                   style: TextStyle(color: Colors.grey, fontSize: 14),
                 ),
                 const SizedBox(height: 40),
@@ -79,7 +79,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     prefixIcon: Icon(Icons.email_outlined),
                     border: OutlineInputBorder(),
                   ),
-                  validator: (v) => v!.isEmpty ? 'Email tidak boleh kosong' : null,
+                  validator: (v) => v!.isEmpty ? 'Email cannot be empty' : null,
                 ),
                 const SizedBox(height: 16),
 
@@ -96,7 +96,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       onPressed: () => setState(() => _obscure = !_obscure),
                     ),
                   ),
-                  validator: (v) => v!.isEmpty ? 'Password tidak boleh kosong' : null,
+                  validator: (v) => v!.isEmpty ? 'Password cannot be empty' : null,
                 ),
                 const SizedBox(height: 24),
 
@@ -120,7 +120,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Center(
                   child: TextButton(
                     onPressed: () => context.push('/register'),
-                    child: const Text('Belum punya akun? Daftar sekarang'),
+                    child: const Text('Don\'t have an account? Register now'),
                   ),
                 ),
               ],

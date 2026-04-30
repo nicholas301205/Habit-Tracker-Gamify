@@ -53,7 +53,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final isLoading = authState is AsyncLoading;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Daftar Akun'), centerTitle: true),
+      appBar: AppBar(title: const Text('Register Account'), centerTitle: true),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -70,7 +70,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     border: OutlineInputBorder(),
                   ),
                   validator: (v) => v!.length < 3
-                      ? 'Username minimal 3 karakter' : null,
+                      ? 'Username minimal 3 Characters' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -82,7 +82,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     border: OutlineInputBorder(),
                   ),
                   validator: (v) => !v!.contains('@')
-                      ? 'Email tidak valid' : null,
+                      ? 'Email is not valid' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -92,10 +92,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     labelText: 'Password',
                     prefixIcon: Icon(Icons.lock_outline),
                     border: OutlineInputBorder(),
-                    helperText: 'Minimal 6 karakter',
+                    helperText: 'Minimal 6 Characters',
                   ),
                   validator: (v) => v!.length < 6
-                      ? 'Password minimal 6 karakter' : null,
+                      ? 'Password minimal 6 Characters' : null,
                 ),
                 const SizedBox(height: 32),
                 SizedBox(
@@ -108,7 +108,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     child: isLoading
                         ? const SizedBox(height: 18, width: 18,
                             child: CircularProgressIndicator(strokeWidth: 2))
-                        : const Text('Daftar Sekarang'),
+                        : const Text('Register Now'),
                   ),
                 ),
               ],
