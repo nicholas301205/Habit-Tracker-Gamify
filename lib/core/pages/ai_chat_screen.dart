@@ -11,9 +11,18 @@ class AIChatScreen extends ConsumerStatefulWidget {
 
 class _AIChatScreenState extends ConsumerState<AIChatScreen> {
   final TextEditingController controller = TextEditingController();
+  final ScrollController scrollController = ScrollController();
+
   final List<Map<String, String>> messages = [];
 
   bool isLoading = false;
+
+  @override
+  void dispose() {
+    controller.dispose();
+    scrollController.dispose();
+    super.dispose();
+  }
 
   Future<void> sendMessage() async {
     final text = controller.text.trim();
@@ -25,9 +34,11 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
     });
 
     controller.clear();
+    _scrollToBottom();
 
     try {
       final ai = ref.read(aiServiceProvider);
+
       final reply = await ai.sendMessage(text);
 
       setState(() {
@@ -41,10 +52,23 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
         });
       });
     } finally {
-      setState(() {
-        isLoading = false;
-      });
+      setState(() => isLoading = false);
+      _scrollToBottom();
     }
+  }
+
+  void _scrollToBottom() {
+    Future.delayed(const Duration(milliseconds: 200), () {
+      if (!mounted) return;
+
+      if (scrollController.hasClients) {
+        scrollController.animateTo(
+          scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   Widget buildMessage(Map<String, String> msg) {
@@ -57,12 +81,12 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isUser
-              ? Colors.blue
+              ? Theme.of(context).colorScheme.primary
               : Colors.grey.shade300,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Text(
-          msg["text"]!,
+          msg["text"] ?? "",
           style: TextStyle(
             color: isUser ? Colors.white : Colors.black,
           ),
@@ -81,26 +105,37 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
         children: [
           /// CHAT LIST
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.only(top: 10),
-              itemCount: messages.length,
-              itemBuilder: (context, index) {
-                return buildMessage(messages[index]);
-              },
-            ),
+            child: messages.isEmpty
+                ? const Center(
+                    child: Text("Mulai percakapan dengan AI..."),
+                  )
+                : ListView.builder(
+                    controller: scrollController,
+                    padding: const EdgeInsets.only(top: 10),
+                    itemCount: messages.length,
+                    itemBuilder: (context, index) {
+                      return buildMessage(messages[index]);
+                    },
+                  ),
           ),
 
           /// LOADING
           if (isLoading)
             const Padding(
               padding: EdgeInsets.all(8),
-              child: Text("AI sedang mengetik..."),
+              child: Row(
+                children: [
+                  CircularProgressIndicator(strokeWidth: 2),
+                  SizedBox(width: 10),
+                  Text("AI sedang mengetik..."),
+                ],
+              ),
             ),
 
           /// INPUT
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               child: Row(
                 children: [
                   Expanded(
@@ -108,10 +143,12 @@ class _AIChatScreenState extends ConsumerState<AIChatScreen> {
                       controller: controller,
                       decoration: const InputDecoration(
                         hintText: "Tanya AI...",
+                        border: OutlineInputBorder(),
                       ),
                       onSubmitted: (_) => sendMessage(),
                     ),
                   ),
+                  const SizedBox(width: 8),
                   IconButton(
                     icon: const Icon(Icons.send),
                     onPressed: sendMessage,

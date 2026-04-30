@@ -3,32 +3,38 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AIService {
-  final String apiKey = dotenv.env['OPENAI_API_KEY']!;
+  final String apiKey = dotenv.env['OPENAI_API_KEY'] ?? '';
 
   Future<String> sendMessage(String message) async {
+    final url = Uri.parse(
+      "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash-lite:generateContent?key=$apiKey",
+    );
+
     final response = await http.post(
-      Uri.parse("https://api.openai.com/v1/chat/completions"),
+      url,
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer $apiKey",
       },
       body: jsonEncode({
-        "model": "gpt-4o-mini",
-        "messages": [
+        "contents": [
           {
-            "role": "system",
-            "content":
-                "Kamu adalah AI habit coach. Berikan saran kebiasaan, motivasi, dan solusi produktivitas."
-          },
-          {
-            "role": "user",
-            "content": message
+            "parts": [
+              {"text": message}
+            ]
           }
         ]
       }),
     );
 
-    final data = jsonDecode(response.body);
-    return data['choices'][0]['message']['content'];
+    // 🔍 DEBUG WAJIB
+    print("STATUS: ${response.statusCode}");
+    print("BODY: ${response.body}");
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['candidates'][0]['content']['parts'][0]['text'];
+    } else {
+      return "Error API: ${response.statusCode}";
+    }
   }
 }

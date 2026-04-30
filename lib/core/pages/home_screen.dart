@@ -35,7 +35,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       appBar: AppBar(
         title: const Text("Habit Tracker"),
         actions: [
-          /// 🔥 BUTTON AI (PENTING)
+          /// 🔥 AI BUTTON (tetap ada di atas)
           IconButton(
             icon: const Icon(Icons.smart_toy),
             tooltip: "AI Assistant",
@@ -81,13 +81,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ],
       ),
 
-      /// 🔥 OPTIONAL: Floating AI Button (lebih keren)
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          context.push('/ai');
-        },
-        child: const Icon(Icons.chat),
-      ),
+      /// ❌ SUDAH DIHAPUS
+      // floatingActionButton: ...
     );
   }
 }
