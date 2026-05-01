@@ -24,7 +24,8 @@ class _AddEditHabitScreenState
 
   bool get _isEdit => widget.habit != null;
 
-  final _categories = ['Health', 'Study', 'Productivity', 'Other'];
+  // 🔹 Kategori udah di-update lengkap
+  final _categories = ['Health', 'Study', 'Productivity', 'Creativity', 'Chores', 'Social', 'Other'];
   final _frequencies = ['daily', 'weekly'];
 
   @override
@@ -82,6 +83,38 @@ class _AddEditHabitScreenState
     }
 
     if (mounted) Navigator.pop(context);
+  }
+
+  //
+  // 🔹 FUNGSI BANTUAN BUAT ICON
+  //
+  IconData _getCategoryIcon(String category) {
+    switch (category) {
+      case 'Health': return Icons.favorite;
+      case 'Study': return Icons.menu_book;
+      case 'Productivity': return Icons.bolt;
+      case 'Creativity': return Icons.palette;
+      case 'Chores': return Icons.cleaning_services;
+      case 'Social': return Icons.people;
+      case 'Other': return Icons.category;
+      default: return Icons.category;
+    }
+  }
+
+  //
+  // 🔹 FUNGSI BANTUAN BUAT WARNA (Sesuai Screenshot Lu!)
+  //
+  Color _getCategoryColor(String category) {
+    switch (category) {
+      case 'Health': return Colors.green;        // Hijau
+      case 'Study': return Colors.blue;          // Biru
+      case 'Productivity': return Colors.orange; // Oranye/Kuning
+      case 'Creativity': return Colors.pink;
+      case 'Chores': return Colors.brown;
+      case 'Social': return Colors.indigo;
+      case 'Other': return Colors.purple;        // Ungu
+      default: return Colors.grey;
+    }
   }
 
   @override
@@ -150,11 +183,22 @@ class _AddEditHabitScreenState
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
+              runSpacing: 8, // Biar rapi kalau kategorinya banyak dan turun baris
               children: _categories.map((cat) {
                 final selected = _category == cat;
                 return ChoiceChip(
+                  avatar: Icon(
+                    _getCategoryIcon(cat),
+                    size: 18,
+                    color: selected ? Colors.white : _getCategoryColor(cat),
+                  ),
                   label: Text(cat),
                   selected: selected,
+                  selectedColor: _getCategoryColor(cat),
+                  labelStyle: TextStyle(
+                    color: selected ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color,
+                    fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                  ),
                   onSelected: (_) =>
                       setState(() => _category = cat),
                 );

@@ -7,15 +7,14 @@ import '../models/habit_model.dart';
 import '../services/firestore_services.dart';
 import '../services/notification_service.dart';
 import 'auth_provider.dart';
+import 'stats_provider.dart'; 
 
-// Stream semua habit user yang aktif
 final habitListProvider = StreamProvider<List<HabitModel>>((ref) {
   final uid = ref.watch(authStateProvider).asData?.value?.uid;
   if (uid == null) return Stream.value([]);
   return ref.watch(firestoreServiceProvider).watchHabits(uid);
 });
 
-// Provider untuk cek habit mana yang sudah done hari ini
 final completedTodayProvider = StreamProvider<List<String>>((ref) {
   final uid = ref.watch(authStateProvider).asData?.value?.uid;
   if (uid == null) return Stream.value([]);
@@ -38,24 +37,22 @@ class HabitCompleteResult {
   });
 }
 
-// Notifier untuk aksi CRUD
 class HabitNotifier extends StateNotifier<HabitState> {
   final FirestoreService _service;
   final String userId;
+  final Ref ref; 
 
-  HabitNotifier(this._service, this.userId)
+  HabitNotifier(this._service, this.userId, this.ref) 
     : super(HabitState.initial());
 
   Future<void> completeHabit(String habitId, int currentUserLevel) async {
   state = state.copyWith(isLoading: true, levelUpTo: null, newlyUnlockedBadges: []);
   try {
-    // Panggil method lama yang sudah pasti ada
     final newlyUnlockedBadges = await _service.completeHabit(
       habitId: habitId,
       userId: userId,
     );
 
-    // Cek level up langsung dari Firestore
     final userSnap = await FirebaseFirestore.instance
         .collection('users')
         .doc(userId)
@@ -76,6 +73,9 @@ class HabitNotifier extends StateNotifier<HabitState> {
         newlyUnlockedBadges: newlyUnlockedBadges,
       );
     }
+
+    ref.invalidate(weeklyStatsProvider); 
+
   } catch (e) {
     state = state.copyWith(isLoading: false, error: e.toString());
   }
@@ -158,7 +158,7 @@ class HabitNotifier extends StateNotifier<HabitState> {
 
 class HabitState {
   final bool isLoading;
-  final int? levelUpTo;  // null = tidak ada level up
+  final int? levelUpTo;  
   final String? error;
   final List<String> newlyUnlockedBadges;
 
@@ -189,6 +189,5 @@ class HabitState {
 final habitNotifierProvider =
     StateNotifierProvider<HabitNotifier, HabitState>((ref) {
   final uid = ref.watch(authStateProvider).asData?.value?.uid ?? '';
-  return HabitNotifier(ref.watch(firestoreServiceProvider), uid);
+  return HabitNotifier(ref.watch(firestoreServiceProvider), uid, ref); 
 });
-

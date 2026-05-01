@@ -63,10 +63,14 @@ class _HabitCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // 🔹 Map warna udah di-update lengkap di sini dawg!
     final categoryColors = {
       'Health': Colors.green,
       'Study': Colors.blue,
       'Productivity': Colors.orange,
+      'Creativity': Colors.pink,
+      'Chores': Colors.brown,
+      'Social': Colors.indigo,
       'Other': Colors.purple,
     };
     final color = categoryColors[habit.category] ?? Colors.grey;
