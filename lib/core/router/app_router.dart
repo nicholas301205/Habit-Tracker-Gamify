@@ -1,30 +1,41 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../providers/auth_provider.dart';
-import '../pages/splash_screen.dart';
-import '../pages/login_screen.dart';
-import '../pages/register_screen.dart';
-import '../pages/home_screen.dart';
+
+// AUTH
+import 'package:habbit_tracker_gamify/providers/auth_provider.dart';
+
+// PAGES
+import 'package:habbit_tracker_gamify/core/pages/splash_screen.dart';
+import 'package:habbit_tracker_gamify/core/pages/login_screen.dart';
+import 'package:habbit_tracker_gamify/core/pages/register_screen.dart';
+import 'package:habbit_tracker_gamify/core/pages/home_screen.dart';
+import 'package:habbit_tracker_gamify/core/pages/ai_chat_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
 
   return GoRouter(
     initialLocation: '/splash',
+
+    /// 🔁 REDIRECT LOGIC
     redirect: (context, state) {
       final isLoggedIn = authState.value != null;
-      final isAuthRoute = state.matchedLocation == '/login' ||
+
+      final isAuthRoute =
+          state.matchedLocation == '/login' ||
           state.matchedLocation == '/register' ||
           state.matchedLocation == '/splash';
 
-      // Sudah login tapi masih di auth pages → redirect ke home
+      // ✅ SUDAH LOGIN → jangan ke auth page
       if (isLoggedIn && isAuthRoute) return '/home';
 
-      // Belum login tapi coba akses home → redirect ke login
+      // ❌ BELUM LOGIN → jangan akses halaman utama
       if (!isLoggedIn && !isAuthRoute) return '/login';
 
-      return null; // tidak perlu redirect
+      return null;
     },
+
+    /// 📍 ROUTES
     routes: [
       GoRoute(
         path: '/splash',
@@ -41,6 +52,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/home',
         builder: (_, __) => const HomeScreen(),
+      ),
+
+      /// 🔥 TAMBAHAN AI CHAT
+      GoRoute(
+        path: '/ai',
+        builder: (_, __) => const AIChatScreen(),
       ),
     ],
   );
